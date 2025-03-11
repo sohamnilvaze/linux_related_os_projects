@@ -1,11 +1,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<fcntl.h>
-#include<errorno.h>
+#include<errno.h>
 #include<linux/fs.h>
 #include<sys/types.h>
 #include<unistd.h>
 #include<ext2fs/ext2_fs.h>
+#define _LARGEFILE64_SOURCE
 
 int main(int argc, char* argv[])
 {
@@ -18,7 +19,7 @@ int main(int argc, char* argv[])
 	if(fd==-1)
 	{
 		error("Read Error.");
-		exit(errorno);
+		exit(errno);
 	}
 	lseek(fd,1024,SEEK_CUR);//Move the pointer to the super block by skipping the boot block
 	printf("size of super block = %lu\n",sizeof(struct ext2_super_block);
