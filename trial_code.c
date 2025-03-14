@@ -1,14 +1,3 @@
-/* inodenumber.c
- *
- * Given a device filename and an inode number, this program opens the ext2
- * file system on that device, reads the superblock and group descriptor to
- * locate the inode table, then prints key information from the specified inode.
- *
- * Usage: ./a.out <device-file> <inode-number>
- *
- * Example: ./a.out /dev/sdb1 /10
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

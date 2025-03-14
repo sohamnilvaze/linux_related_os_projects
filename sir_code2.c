@@ -19,7 +19,7 @@ int main(int argc,char* argv[])
 	//struct ext2_inode inode;
 	//struct ext2_group_desc bgdesc;
 	
-	inode_no = atoi(argv[2]);
+	//inode_no = atoi(argv[2]);
 	fd = open(argv[1],O_RDONLY);
 	if(fd==-1)
 	{
@@ -36,16 +36,16 @@ int main(int argc,char* argv[])
 	int inodes_count = sb.s_inodes_count;
 	struct ext2_inode inode[inodes_count];
 	
-	printf("size of BG DESC:- %lu\n",sizeof(struct ext2_group_desc));
+	//printf("size of BG DESC:- %lu\n",sizeof(struct ext2_group_desc));
 	inode_size = sb.s_inode_size;
 	block_size = 1024 << sb.s_log_block_size;
 	
 	
 	int n_groups = sb.s_blocks_count / sb.s_blocks_per_group;//no. of group descriptors  = no. of groups
-	/**if(sb.s_block_count % sb.s_blocks_per_group > 0)
+	if(sb.s_block_count % sb.s_blocks_per_group > 0)
 	{
 		n_groups++;
-	}**/
+	}
 	struct ext2_group_desc bgdesc[n_groups];
 	bgno = (inode_no - 1) / sb.s_blocks_per_group;
 	inode_index = (inode_no -1)% sb.s_blocks_per_group;
