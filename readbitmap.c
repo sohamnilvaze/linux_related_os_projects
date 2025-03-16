@@ -25,9 +25,10 @@ int main(int argc, char* argv[])
     struct ext2_inode inode;
     int inode_num;
     int inode_size;
-    uint32_t block_size,inodes_per_group,blocks_per_group;
+    uint32_t block_size,inodes_per_group,blocks_per_group,groups_count;
     off_t inode_table_offset;
     off_t inode_offset; 
+
 	
 	if(argc!=3)
 	{
@@ -72,10 +73,18 @@ int main(int argc, char* argv[])
 	
 	inodes_per_group = sb.s_inodes_per_group;
 	blocks_per_group = sb.s_blocks_per_group;
+	groups_count = sb.s_blocks_count / sb.s_blocks_per_group;
+	if(sb.s_blocks_count % sb.s_blocks_per_group > 0)
+	{
+		groups_count++;
+	}
 	block_size = 1024 << sb.s_log_block_size;
 	inode_size = sb.s_inode_size;
+	printf("Block size in bytes:- %u.\n",block_size);
 	
 	off_t gdt_offset = 2 * block_size;
+	off_t bitmap_offset = 1024 + block_size*(1+groups_count);
+	
 	
 	int group_no = (inode_num - 1) / inodes_per_group;
 	int inode_no = (inode_num - 1) % inodes_per_group;
@@ -108,66 +117,53 @@ int main(int argc, char* argv[])
 	printf("Inode size:- %u.\n",inode.i_size);
 	printf("Inode group id:- %u.\n",inode.i_gid);
 	printf("Inode Block Count:- %u.\n",inode.i_blocks);
-	for(int i=0; i<inode.i_blocks;i++)
+	printf("Inode Access Time:- %u.\n",inode.i_atime);
+	printf("Inode Creation TIme:- %u.\n",inode.i_ctime);
+	printf("Inode Modification Time:- %u.\n",inode.i_mtime);
+	printf("Inode Deletion TIme:- %u.\n",inode.i_dtime);
+	
+	for(int i=0; i<15;i++)
 	{
 		printf("Inode Block %d:- %u.\n",i,inode.i_block[i]);
 	}
 	
-	
-	/**int fd = open(argv[1],O_RDONLY);
-	if(fd < 0)
+	printf("Reading the data block bitmap.\n");
+	unsigned char bitmap[block_size];
+	lseek64(fd,1024 + 1024*groups_count,SEEK_SET);
+	int n_bitmap = read(fd,&bitmap,sizeof(bitmap));
+	if(n_bitmap!=sizeof(bitmap))
 	{
-		perror("open");
+		perror("read data block bitmap.");
 		exit(1);
 	}
-	//Accessing the superblock
-	printf("Accessing the superblock.\n");
-	struct ext2_super_block sb;
-	if(lseek(fd,BASE_OFFSET,SEEK_SET) < 0 || read(fd,&sb,sizeof(sb)!=sizeof(sb)))
+	bitmap[block_size]='\0';
+	
+	printf("Bitmap contents:\n");
+	for(int i=0; i<sizeof(bitmap);i++)
 	{
-		perror("read superblock");
+		printf("%u ",bitmap[i]);
+	}
+	
+	printf("Reading the inode bitmap.\n");
+	unsigned char inode_bitmap[block_size];
+	lseek64(fd,1024 + 1024*groups_count + block_size,SEEK_SET);
+	int n_inode_bitmap = read(fd,&inode_bitmap,sizeof(inode_bitmap));
+	if(n_inode_bitmap!=sizeof(inode_bitmap))
+	{
+		perror("read inode bitmap.");
 		exit(1);
 	}
-	read(fd,&sb,sizeof(sb));
-	//Reading the information from superblock
-	printf("Reading Superblock information.\n");
-	uint32_t total_inodes_count = sb.s_inodes_count;
-	uint32_t total_blocks_count = sb.s_blocks_count;
-	uint32_t blocks_per_group = sb.s_blocks_per_group;
-	uint32_t inodes_per_group = sb.s_inodes_per_group;
-	uint32_t block_size = 1024 << sb.s_log_block_size;
-	printf("Total inodes count:- %u.\n",total_inodes_count);
-	printf("Total blocks count:- %u.\n",total_blocks_count);
-	printf("Total blocks per group:- %u.\n",blocks_per_group);
-	printf("Total inodes_per_group:- %u.\n",inodes_per_group);
-	printf("Total block size:- %u.\n",block_size);
+	inode_bitmap[block_size]='\0';
 	
-	uint32_t total_groups = total_blocks_count / blocks_per_group;
-	if(total_blocks_count % blocks_per_group > 0)
+	printf("Inode Bitmap contents:\n");
+	for(int i=0; i<sizeof(inode_bitmap);i++)
 	{
-		total_groups++;
-	}
-	printf("Total groups:- %u.\n",total_groups);
-	
-	//Accessing the group descriptor table 
-	printf("Accessing group descriptor tables.\n");
-	struct ext2_group_desc* gdesc_table=malloc(sizeof(struct ext2_group_desc)*total_groups);
-	int gdesc_table_offset = 1024 + 1024;
-	if(lseek64(fd,gdesc_table_offset,SEEK_SET) < 0 || read(fd,gdesc_table,sizeof(gdesc_table))!=sizeof(gdesc_table))
-	{
-		perror("Read group descriptor.\n");
-		exit(1);
+		printf("%u ",inode_bitmap[i]);
 	}
 	
-	//Reading the group descriptor entries
-	printf("Reading group descriptor table entries.\n");
-	for(int i=1; i<=total_groups;i++)
-	{
-		printf("Group descriptor Entry:-%d\n",i);
-		printf("Inode table:- %u.\n",gdesc_table[i].bg_inode_table);
-		printf("Inode Bitmap:- %u.\n",gdesc_table[i].bg_inode_bitmap);
-		printf("Block Bitmap:- %u.\n",gdesc_table[i].bg_block_bitmap);
-	}**/
+	
+	
+	
 	
 	close(fd);
 	return 0;
