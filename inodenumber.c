@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 	printf("Inode group id:- %u.\n",inode.i_gid);
 	printf("Inode Block Count:- %u.\n",inode.i_blocks);
 	printf("Inode Access Time:- %u.\n",inode.i_atime);
-	printf("Inode Creation TIme:- %u.\n",inode.i_ctime);
+	printf("Inode Creation Time:- %u.\n",inode.i_ctime);
 	printf("Inode Modification Time:- %u.\n",inode.i_mtime);
 	printf("Inode Deletion TIme:- %u.\n",inode.i_dtime);
 	
@@ -117,6 +117,26 @@ int main(int argc, char* argv[])
 	{
 		printf("Inode Block %d:- %u.\n",i,inode.i_block[i]);
 	}
+	printf("Printing the contents of each assigned inode.\n");
+	for(int i=0; i<inode.i_blocks;i++)
+	{	
+		uint32_t offset = inode.i_block[i];
+		unsigned char bitmap_content[block_size];
+		lseek64(fd,block_size*offset,SEEK_SET);
+		int n_bitmap_content = read(fd,&bitmap_content,sizeof(bitmap_content));
+		if(n_bitmap_content!=sizeof(bitmap_content))
+		{
+			perror("read bitmap content.");
+			exit(1);
+		}
+		printf("Data Block at %u contents:-\n",offset);
+		for(int i=0; i<sizeof(bitmap_content);i++)
+		{
+			printf("%c",bitmap_content[i]);
+		}
+		printf("\n");
+	}
+		
 	
 	
 	/**int fd = open(argv[1],O_RDONLY);
@@ -173,6 +193,8 @@ int main(int argc, char* argv[])
 		printf("Inode Bitmap:- %u.\n",gdesc_table[i].bg_inode_bitmap);
 		printf("Block Bitmap:- %u.\n",gdesc_table[i].bg_block_bitmap);
 	}**/
+	
+	
 	
 	close(fd);
 	return 0;
