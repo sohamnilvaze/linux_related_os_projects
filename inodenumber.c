@@ -7,9 +7,18 @@
 #include<errno.h>
 #include<ext2fs/ext2_fs.h>
 
+/*#define EXT2_SUPER_MAGIC 0xEF53
+#define BASE_OFFSET 1024
+#define DEFAULT_INODE_SIZE 128*/
+
 #define EXT2_SUPER_MAGIC 0xEF53
 #define BASE_OFFSET 1024
+#define BLOCK_OFFSET(block) (BASE_OFFSET + (block-1)*1024)
 #define DEFAULT_INODE_SIZE 128
+#define EXT2_NDIR_BLOCKS 12
+#define EXT2_IND_BLOCKS EXT2_NDIR_BLOCKS
+#define EXT2_DIND_BLOCKS (EXT2_IND_BLOCKS + 1)
+#define EXT2_TIND_BLOCKS (EXT2_DIND_BLOCKS + 1)
 
 void usage(char *progname) {
     fprintf(stderr, "Usage: %s <device-file> <inode-number>\n", progname);
